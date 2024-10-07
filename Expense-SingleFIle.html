@@ -121,6 +121,19 @@
         margin-top: 20px;
       }
 
+      .delete-btn {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .delete-btn:hover {
+        background-color: #d32f2f;
+      }
+
       /* Modal Styles */
       .modal {
         display: none;
@@ -206,6 +219,7 @@
                   <th>Amount ($)</th>
                   <th>Category</th>
                   <th>Date & Time</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody id="expenseTableBody">
@@ -272,12 +286,13 @@
         const tableBody = document.getElementById("expenseTableBody");
         tableBody.innerHTML = ""; // Clear existing rows
 
-        expenses.forEach((expense) => {
+        expenses.forEach((expense, index) => {
           const row = `<tr>
                             <td>${expense.name}</td>
                             <td>$${expense.amount.toFixed(2)}</td>
                             <td>${expense.category}</td>
                             <td>${expense.date}</td>
+                            <td><button class="delete-btn" onclick="deleteExpense(${index})">Delete</button></td>
                          </tr>`;
           tableBody.innerHTML += row;
         });
@@ -286,6 +301,13 @@
       function updateTotalExpenses() {
         document.getElementById("totalExpenses").innerText =
           totalExpenses.toFixed(2);
+      }
+
+      function deleteExpense(index) {
+        totalExpenses -= expenses[index].amount;
+        expenses.splice(index, 1); // Remove the expense from the array
+        updateTable();
+        updateTotalExpenses();
       }
 
       function clearInputs() {
@@ -306,19 +328,18 @@
 
       function loadFromFile(event) {
         const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            const data = JSON.parse(e.target.result);
-            expenses = data.expenses || [];
-            totalExpenses = data.totalExpenses || 0;
+        const reader = new FileReader();
 
-            updateTable();
-            updateTotalExpenses();
-            closeModal();
-          };
-          reader.readAsText(file);
-        }
+        reader.onload = function (e) {
+          const data = JSON.parse(e.target.result);
+          expenses = data.expenses || [];
+          totalExpenses = parseFloat(data.totalExpenses) || 0;
+          updateTable();
+          updateTotalExpenses();
+          closeModal(); // Close modal after loading file
+        };
+
+        reader.readAsText(file);
       }
 
       function openModal() {
