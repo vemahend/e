@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        header {
+            background-color: black;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            padding: 20px;
+        }
+        .profile-info {
+            flex: 1;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .profile-info img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+        .profile-image {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            padding: 20px;
+        }
+        .profile-image img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.png" alt="Logo" style="height: 40px;">
+    </header>
+    <div class="container">
+        <div class="profile-info">
+            <h1>John Doe</h1>
+            <p>Welcome to my profile page. Here you can find more information about me, my work, and my interests.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent tincidunt, tortor nec venenatis vehicula, lacus elit pharetra orci, nec dapibus felis mi et ligula.</p>
+        </div>
+        <div class="profile-image">
+            <img src="profile-image.jpg" alt="Profile Image">
+        </div>
+    </div>
+</body>
+</html>

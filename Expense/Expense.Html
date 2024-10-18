@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Expense Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="h1-text-design">Monthly Expense Tracker</h1>
+
+        <div class="flex-container">
+            <div class="form-section">
+                <div class="form">
+                    <label for="expenseName">Expense Name:</label>
+                    <input type="text" id="expenseName" placeholder="e.g., Rent, Groceries">
+                    <label for="expenseAmount">Amount ($):</label>
+                    <input type="number" id="expenseAmount" placeholder="e.g., 500">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" id="quantity" placeholder="e.g., 1,2,3,4,5,6...">
+                    <button onclick="addExpense()">Add Expense</button>
+                </div>
+                <!-- Save and Load Buttons -->
+                <div class="file-buttons">
+                    <button onclick="saveToFile()">Save to File</button>
+                    <input type="file" id="fileInput" accept=".json" onchange="loadFromFile(event)" style="display:none;">
+                    <button onclick="document.getElementById('fileInput').click()">Load from File</button>
+                </div>
+            </div>
+
+
+            <!-- Total Expenses Section (Left) -->
+            <div class="total-section">
+                <h3>Total Expenses: $<span id="totalExpenses">0</span></h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Expense Name</th>
+                                <th>Amount ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenseTableBody">
+                            <!-- Dynamic rows will be added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Add Expense Form (Right) -->
+           
+        </div>
+    </div>
+
+    <script src="scripts.js"></script>
+</body>
+</html>

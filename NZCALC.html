@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NZ Tax and Basic Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 50px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-around;
+        }
+        .calculator, .basic-calculator {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 45%;
+        }
+        input[type="number"], select, button {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result, .breakdown, .calc-result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .chart-container {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+        .calc-display {
+            margin-bottom: 10px;
+            width: 100%;
+            font-size: 2em;
+            text-align: right;
+        }
+        .calc-button {
+            width: 25%;
+            padding: 20px;
+            font-size: 1.5em;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .calc-row {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>NZ Tax Calculator and Basic Calculator</h1>
+    
+    <div class="container">
+        <!-- NZ Tax Calculator -->
+        <div class="calculator">
+            <h2>NZ Tax Calculator</h2>
+
+            <label for="incomeType">Select income type:</label>
+            <select id="incomeType">
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+            </select>
+
+            <label for="income">Enter your gross income (NZD):</label>
+            <input type="number" id="income" placeholder="e.g. 5000">
+
+            <label for="deductions">Enter deductions (NZD):</label>
+            <input type="number" id="deductions" placeholder="e.g. 500" value="0">
+
+            <button onclick="calculateTax()">Calculate Tax</button>
+
+            <div class="result" id="result"></div>
+            <div class="breakdown" id="breakdown"></div>
+        </div>
+
+        <!-- Basic Arithmetic Calculator -->
+        <div class="basic-calculator">
+            <h2>Basic Calculator</h2>
+
+            <input type="text" id="calc-display" class="calc-display" readonly>
+            
+            <div class="calc-row">
+                <button class="calc-button" onclick="calcInput('7')">7</button>
+                <button class="calc-button" onclick="calcInput('8')">8</button>
+                <button class="calc-button" onclick="calcInput('9')">9</button>
+                <button class="calc-button" onclick="calcOperation('/')">/</button>
+            </div>
+            <div class="calc-row">
+                <button class="calc-button" onclick="calcInput('4')">4</button>
+                <button class="calc-button" onclick="calcInput('5')">5</button>
+                <button class="calc-button" onclick="calcInput('6')">6</button>
+                <button class="calc-button" onclick="calcOperation('*')">*</button>
+            </div>
+            <div class="calc-row">
+                <button class="calc-button" onclick="calcInput('1')">1</button>
+                <button class="calc-button" onclick="calcInput('2')">2</button>
+                <button class="calc-button" onclick="calcInput('3')">3</button>
+                <button class="calc-button" onclick="calcOperation('-')">-</button>
+            </div>
+            <div class="calc-row">
+                <button class="calc-button" onclick="calcInput('0')">0</button>
+                <button class="calc-button" onclick="calcInput('.')">.</button>
+                <button class="calc-button" onclick="calculate()">=</button>
+                <button class="calc-button" onclick="calcOperation('+')">+</button>
+            </div>
+            <div class="calc-row">
+                <button class="calc-button" onclick="clearCalc()">C</button>
+            </div>
+
+            <div class="calc-result" id="calc-result"></div>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="taxChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // NZ Tax Calculator JavaScript (Same as before)
+        let taxChart;
+
+        function calculateTax() {
+            const incomeType = document.getElementById('incomeType').value;
+            const grossIncome = parseFloat(document.getElementById('income').value);
+            const deductions = parseFloat(document.getElementById('deductions').value) || 0;
+            let annualIncome;
+
+            // Calculate net income by subtracting deductions from gross income
+            let netIncome = grossIncome - deductions;
+
+            if (incomeType === 'monthly') {
+                annualIncome = netIncome * 12; // Convert monthly to annual
+            } else {
+                annualIncome = netIncome; // Already yearly
+            }
+
+            let tax = 0;
+            let breakdown = "";
+            let taxData = [];
+
+            if (annualIncome <= 14000) {
+                tax = annualIncome * 0.105;
+                breakdown += `10.5% on $${annualIncome.toFixed(2)} = $${tax.toFixed(2)}<br>`;
+                taxData.push(tax);
+            } else if (annualIncome <= 48000) {
+                const tax1 = 14000 * 0.105;
+                const tax2 = (annualIncome - 14000) * 0.175;
+                tax = tax1 + tax2;
+                breakdown += `10.5% on $14,000 = $${tax1.toFixed(2)}<br>`;
+                breakdown += `17.5% on $${(annualIncome - 14000).toFixed(2)} = $${tax2.toFixed(2)}<br>`;
+                taxData.push(tax1, tax2);
+            } else if (annualIncome <= 70000) {
+                const tax1 = 14000 * 0.105;
+                const tax2 = (48000 - 14000) * 0.175;
+                const tax3 = (annualIncome - 48000) * 0.30;
+                tax = tax1 + tax2 + tax3;
+                breakdown += `10.5% on $14,000 = $${tax1.toFixed(2)}<br>`;
+                breakdown += `17.5% on $34,000 = $${tax2.toFixed(2)}<br>`;
+                breakdown += `30% on $${(annualIncome - 48000).toFixed(2)} = $${tax3.toFixed(2)}<br>`;
+                taxData.push(tax1, tax2, tax3);
+            } else if (annualIncome <= 180000) {
+                const tax1 = 14000 * 0.105;
+                const tax2 = (48000 - 14000) * 0.175;
+                const tax3 = (70000 - 48000) * 0.30;
+                const tax4 = (annualIncome - 70000) * 0.33;
+                tax = tax1 + tax2 + tax3 + tax4;
+                breakdown += `10.5% on $14,000 = $${tax1.toFixed(2)}<br>`;
+                breakdown += `17.5% on $34,000 = $${tax2.toFixed(2)}<br>`;
+                breakdown += `30% on $22,000 = $${tax3.toFixed(2)}<br>`;
+                breakdown += `33% on $${(annualIncome - 70000).toFixed(2)} = $${tax4.toFixed(2)}<br>`;
+                taxData.push(tax1, tax2, tax3, tax4);
+            } else {
+                const tax1 = 14000 * 0.105;
+                const tax2 = (48000 - 14000) * 0.175;
+                const tax3 = (70000 - 48000) * 0.30;
+                const tax4 = (180000 - 70000) * 0.33;
+                const tax5 = (annualIncome - 180000) * 0.39;
+                tax = tax1 + tax2 + tax3 + tax4 + tax5;
+                breakdown += `10.5% on $14,000 = $${tax1.toFixed(2)}<br>`;
+                breakdown += `17.5% on $34,000 = $${tax2.toFixed(2)}<br>`;
+                breakdown += `30% on $22,000 = $${tax3.toFixed(2)}<br>`;
+                breakdown += `33% on $110,000 = $${tax4.toFixed(2)}<br>`;
+                breakdown += `39% on $${(annualIncome - 180000).toFixed(2)} = $${tax5.toFixed(2)}<br>`;
+                taxData.push(tax1, tax2, tax3, tax4, tax5);
+            }
+
+            document.getElementById('result').innerHTML = `Annual Tax: $${tax.toFixed(2)}`;
+            document.getElementById('breakdown').innerHTML = breakdown;
+
+            // Draw Chart
+            if (taxChart) {
+                taxChart.destroy();
+            }
+
+            const ctx = document.getElementById('taxChart').getContext('2d');
+            taxChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['10.5%', '17.5%', '30%', '33%', '39%'],
+                    datasets: [{
+                        label: 'Tax in NZD',
+                        data: taxData,
+                        backgroundColor: ['#4CAF50', '#FF9800', '#F44336', '#9C27B0', '#03A9F4'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Basic Arithmetic Calculator
+        let calcDisplay = '';
+        let operator = '';
+        let firstValue = '';
+
+        function calcInput(value) {
+            calcDisplay += value;
+            document.getElementById('calc-display').value = calcDisplay;
+        }
+
+        function calcOperation(op) {
+            firstValue = calcDisplay;
+            operator = op;
+            calcDisplay = '';
+        }
+
+        function calculate() {
+            let secondValue = calcDisplay;
+            let result;
+
+            switch (operator) {
+                case '+':
+                    result = parseFloat(firstValue) + parseFloat(secondValue);
+                    break;
+                case '-':
+                    result = parseFloat(firstValue) - parseFloat(secondValue);
+                    break;
+                case '*':
+                    result = parseFloat(firstValue) * parseFloat(secondValue);
+                    break;
+                case '/':
+                    result = parseFloat(firstValue) / parseFloat(secondValue);
+                    break;
+            }
+
+            document.getElementById('calc-display').value = result;
+            calcDisplay = result.toString();
+        }
+
+        function clearCalc() {
+            calcDisplay = '';
+            document.getElementById('calc-display').value = '';
+        }
+    </script>
+
+</body>
+</html>

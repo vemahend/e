@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income and Expense Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 20px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            display: none;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ccc;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .summary {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .popup-btn {
+            background-color: #007bff;
+        }
+
+        .popup-btn:hover {
+            background-color: #0056b3;
+        }
+
+        #reportTableContainer {
+            display: block;
+        }
+
+        .left { float: left; }
+        .right { float: right; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Income and Expense Tracker</h2>
+    
+    <form id="trackerForm">
+        <label for="date">Date</label>
+        <input type="date" id="date" required>
+        
+        <label for="description">Description</label>
+        <input type="text" id="description" placeholder="Description (e.g., Salary, Rent)" required>
+
+        <label for="category">Category</label>
+        <select id="category" required>
+            <option value="" disabled selected>Select Category</option>
+            <option value="Salary">Salary</option>
+            <option value="Rent">Rent</option>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Other">Other</option>
+        </select>
+        
+        <label for="income">Income</label>
+        <input type="number" id="income" placeholder="Income Amount" step="0.01" min="0">
+        
+        <label for="expense">Expense</label>
+        <input type="number" id="expense" placeholder="Expense Amount" step="0.01" min="0">
+        
+        <button type="submit">Add Entry</button>
+    </form>
+
+    <input type="file" id="uploadExcel" accept=".xlsx, .xls" />
+    
+    <div class="table-controls">
+        <button id="togglePosition">Toggle Table Position</button>
+        <button id="openPopup" class="popup-btn">Open Table in Popup</button>
+    </div>
+
+    <div id="reportTableContainer" class="left">
+        <table id="reportTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Income</th>
+                    <th>Expense</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+        <div class="summary">
+            <strong>Total Income:</strong> $<span id="totalIncome">0.00</span> <br>
+            <strong>Total Expense:</strong> $<span id="totalExpense">0.00</span> <br>
+            <strong>Net Balance:</strong> $<span id="netBalance">0.00</span>
+        </div>
+
+        <button id="downloadExcel">Download Report as Excel</button>
+    </div>
+</div>
+
+<script>
+// Initialize total income and expense
+let totalIncome = 0;
+let totalExpense = 0;
+
+// Track table position (left or right)
+let isTableLeft = true;
+
+document.getElementById('trackerForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const date = document.getElementById('date').value;
+    const description = document.getElementById('description').value;
+    const category = document.getElementById('category').value;
+    const income = parseFloat(document.getElementById('income').value || 0);
+    const expense = parseFloat(document.getElementById('expense').value || 0);
+
+    if (!date || (!income && !expense) || !category) {
+        alert("Please fill in all the required fields.");
+        return;
+    }
+
+    const tableBody = document.querySelector('#reportTable tbody');
+    const row = tableBody.insertRow();
+
+    row.insertCell(0).textContent = date;
+    row.insertCell(1).textContent = description;
+    row.insertCell(2).textContent = category;
+    row.insertCell(3).textContent = income.toFixed(2);
+    row.insertCell(4).textContent = expense.toFixed(2);
+
+    const deleteCell = row.insertCell(5);
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = "Delete";
+    deleteButton.classList.add('delete-btn');
+    deleteButton.onclick = function() {
+        totalIncome -= income;
+        totalExpense -= expense;
+        updateTotals();
+        row.remove();
+    };
+    deleteCell.appendChild(deleteButton);
+
+    totalIncome += income;
+    totalExpense += expense;
+    updateTotals();
+
+    document.getElementById('reportTable').style.display = 'table';
+    document.getElementById('trackerForm').reset();
+});
+
+document.getElementById('downloadExcel').addEventListener('click', function() {
+    const table = document.getElementById('reportTable');
+    const workbook = XLSX.utils.table_to_book(table, {sheet: "ExpenseReport"});
+    XLSX.writeFile(workbook, 'income_expense_report.xlsx');
+});
+
+// Load data from Excel file
+document.getElementById('uploadExcel').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+        const tableBody = document.querySelector('#reportTable tbody');
+        jsonData.forEach(item => {
+            const row = tableBody.insertRow();
+            row.insertCell(0).textContent = item.Date || '';
+            row.insertCell(1).textContent = item.Description || '';
+            row.insertCell(2).textContent = item.Category || '';
+            row.insertCell(3).textContent = (item.Income || 0).toFixed(2);
+            row.insertCell(4).textContent = (item.Expense || 0).toFixed(2);
+
+            const deleteCell = row.insertCell(5);
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = "Delete";
+            deleteButton.classList.add('delete-btn');
+            deleteButton.onclick = function() {
+                totalIncome -= parseFloat(item.Income || 0);
+                totalExpense -= parseFloat(item.Expense || 0);
+                updateTotals();
+                row.remove();
+            };
+            deleteCell.appendChild(deleteButton);
+
+            totalIncome += parseFloat(item.Income || 0);
+            totalExpense += parseFloat(item.Expense || 0);
+        });
+
+        updateTotals();
+        document.getElementById('reportTable').style.display = 'table';
+    };
+
+    reader.readAsArrayBuffer(file);
+});
+
+// Update total income, expense, and net balance
+function updateTotals() {
+    document.getElementById('totalIncome').textContent = totalIncome.toFixed(2);
+    document.getElementById('totalExpense').textContent = totalExpense.toFixed(2);
+    document.getElementById('netBalance').textContent = (totalIncome - totalExpense).toFixed(2);
+}
+
+// Toggle table position between left and right
+document.getElementById('togglePosition').addEventListener('click', function() {
+    const tableContainer = document.getElementById('reportTableContainer');
+    if (isTableLeft) {
+        tableContainer.classList.remove('left');
+        tableContainer.classList.add('right');
+    } else {
+        tableContainer.classList.remove('right');
+        tableContainer.classList.add('left');
+    }
+    isTableLeft = !isTableLeft;
+});
+
+// Open table in a popup
+document.getElementById('openPopup').addEventListener('click', function() {
+    const popupWindow = window.open("", "PopupWindow", "width=800,height=600");
+    popupWindow.document.write("<html><head><title>Income and Expense Report</title></head><body>");
+    popupWindow.document.write(document.getElementById('reportTableContainer').outerHTML);
+    popupWindow.document.write("</body></html>");
+    popupWindow.document.close();
+});
+</script>
+
+</body>
+</html>

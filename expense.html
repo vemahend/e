@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Calculator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      width: 90%;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .expense-section, .calculator-section {
+      width: 48%;
+    }
+
+    h2, h3 {
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f8f9fa;
+    }
+
+    .total {
+      text-align: right;
+      font-weight: bold;
+      font-size: 1.2em;
+      margin-top: 20px;
+    }
+
+    #basicCalculator input {
+      width: 50px;
+      margin: 5px;
+      text-align: center;
+    }
+
+    .pdf-button {
+      background-color: #007bff;
+      margin-top: 20px;
+    }
+
+    .pdf-button:hover {
+      background-color: #0056b3;
+    }
+
+    .calculator-section {
+      padding: 20px;
+      border-left: 2px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Expense Section -->
+    <div class="expense-section">
+      <h2>Expense Calculator</h2>
+
+      <!-- Expense Input Section -->
+      <label for="expenseName">Expense Name:</label>
+      <input type="text" id="expenseName" placeholder="Enter expense name" required>
+
+      <label for="expenseAmount">Expense Amount:</label>
+      <input type="number" id="expenseAmount" placeholder="Enter amount" required>
+
+      <button onclick="addExpense()">Add Expense</button>
+      <button onclick="resetCalculator()">Reset</button>
+
+      <!-- Expense Table -->
+      <table>
+        <thead>
+          <tr>
+            <th>Expense Name</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody id="expenseTable"></tbody>
+      </table>
+
+      <h3 class="total">Total Expense: $<span id="totalExpense">0</span></h3>
+
+      <!-- PDF Save Button -->
+      <button class="pdf-button" onclick="saveAsPDF()">Save as PDF</button>
+    </div>
+
+    <!-- Calculator Section -->
+    <div class="calculator-section">
+      <h3>Basic Calculator</h3>
+      <input type="number" id="num1" placeholder="0">
+      <input type="number" id="num2" placeholder="0">
+      <br>
+      <button onclick="calculate('+')">+</button>
+      <button onclick="calculate('-')">-</button>
+      <button onclick="calculate('*')">*</button>
+      <button onclick="calculate('/')">/</button>
+      <h4>Result: <span id="calcResult">0</span></h4>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    let totalExpense = 0;
+
+    // Add Expense Function
+    function addExpense() {
+      const expenseName = document.getElementById("expenseName").value;
+      const expenseAmount = parseFloat(document.getElementById("expenseAmount").value);
+
+      if (expenseName === '' || isNaN(expenseAmount) || expenseAmount <= 0) {
+        alert("Please enter a valid expense name and amount.");
+        return;
+      }
+
+      // Add to table
+      const table = document.getElementById("expenseTable");
+      const row = table.insertRow();
+      const cell1 = row.insertCell(0);
+      const cell2 = row.insertCell(1);
+      cell1.textContent = expenseName;
+      cell2.textContent = `$${expenseAmount.toFixed(2)}`;
+
+      // Update total expense
+      totalExpense += expenseAmount;
+      document.getElementById("totalExpense").textContent = totalExpense.toFixed(2);
+
+      // Clear input fields
+      document.getElementById("expenseName").value = '';
+      document.getElementById("expenseAmount").value = '';
+    }
+
+    // Reset Calculator Function
+    function resetCalculator() {
+      totalExpense = 0;
+      document.getElementById("totalExpense").textContent = totalExpense.toFixed(2);
+      document.getElementById("expenseTable").innerHTML = '';
+      document.getElementById("expenseName").value = '';
+      document.getElementById("expenseAmount").value = '';
+    }
+
+    // Basic Calculator Function
+    function calculate(operation) {
+      const num1 = parseFloat(document.getElementById("num1").value);
+      const num2 = parseFloat(document.getElementById("num2").value);
+      let result = 0;
+
+      if (isNaN(num1) || isNaN(num2)) {
+        alert("Please enter valid numbers.");
+        return;
+      }
+
+      if (operation === '+') result = num1 + num2;
+      else if (operation === '-') result = num1 - num2;
+      else if (operation === '*') result = num1 * num2;
+      else if (operation === '/') result = num1 / num2;
+
+      document.getElementById("calcResult").textContent = result;
+    }
+
+    // Save as PDF Function
+    function saveAsPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(18);
+      doc.text("Expense Report", 14, 16);
+
+      doc.setFontSize(12);
+      let yOffset = 30;
+
+      // Add expenses from table
+      const rows = document.querySelectorAll("#expenseTable tr");
+      rows.forEach((row, index) => {
+        const expenseName = row.cells[0].innerText;
+        const amount = row.cells[1].innerText;
+        doc.text(`${index + 1}. ${expenseName}: ${amount}`, 14, yOffset);
+        yOffset += 10;
+      });
+
+      // Add total expense
+      doc.text(`Total Expense: $${totalExpense.toFixed(2)}`, 14, yOffset + 10);
+
+      doc.save("expense-report.pdf");
+    }
+  </script>
+
+</body>
+</html>

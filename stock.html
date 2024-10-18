@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Stock Analysis Bot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            padding: 10px;
+            width: 300px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Live Stock Analysis Bot</h2>
+    <input type="text" id="stockSymbol" placeholder="Enter Stock Symbol (e.g., TCS.BSE)">
+    <br>
+    <button onclick="analyzeStock()">Analyze</button>
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+    async function analyzeStock() {
+        const stockSymbol = document.getElementById("stockSymbol").value.trim().toUpperCase();
+        const resultDiv = document.getElementById("result");
+
+        if (!stockSymbol) {
+            resultDiv.innerHTML = "Please enter a valid stock symbol.";
+            return;
+        }
+
+        // API call to fetch stock data
+        const apiKey = 'YOUR_ALPHA_VANTAGE_API_KEY'; // Replace with your Alpha Vantage API key
+        const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${stockSymbol}&apikey=${apiKey}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data["Error Message"]) {
+                resultDiv.innerHTML = "Invalid stock symbol or API limit reached.";
+                return;
+            }
+
+            const dailyData = data["Time Series (Daily)"];
+            const latestDate = Object.keys(dailyData)[0]; // Get the latest date
+            const latestClose = dailyData[latestDate]["4. close"]; // Get the latest close price
+
+            // Display the latest close price
+            resultDiv.innerHTML = `Latest close price of ${stockSymbol} is ₹${latestClose}`;
+
+            // You can add more complex analysis here
+            // Example: Check if the price is higher than a threshold to suggest a "good buy"
+            const goodBuyThreshold = 1000; // Example threshold
+            if (parseFloat(latestClose) > goodBuyThreshold) {
+                resultDiv.innerHTML += `<br>Analysis: <span style="color: green;">Good Buy</span> (Price > ₹${goodBuyThreshold})`;
+            } else {
+                resultDiv.innerHTML += `<br>Analysis: <span style="color: red;">Not a Good Buy</span> (Price ≤ ₹${goodBuyThreshold})`;
+            }
+        } catch (error) {
+            resultDiv.innerHTML = "Error fetching stock data. Please try again later.";
+        }
+    }
+</script>
+
+</body>
+</html>

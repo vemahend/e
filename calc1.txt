@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculators</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Salary, Tax & GST Calculator</h1>
+
+        <!-- Salary Calculator -->
+        <div class="calculator">
+            <h2>Salary Calculator</h2>
+            <label for="basicSalary">Basic Salary:</label>
+            <input type="number" id="basicSalary" placeholder="Enter your salary">
+            <label for="hra">HRA:</label>
+            <input type="number" id="hra" placeholder="Enter HRA">
+            <label for="otherAllowance">Other Allowance:</label>
+            <input type="number" id="otherAllowance" placeholder="Enter other allowance">
+            <button onclick="calculateSalary()">Calculate Total Salary</button>
+            <p id="salaryResult">Total Salary: ₹0</p>
+        </div>
+
+        <!-- Tax Calculator -->
+        <div class="calculator">
+            <h2>Tax Calculator</h2>
+            <label for="taxIncome">Income:</label>
+            <input type="number" id="taxIncome" placeholder="Enter your income">
+            <label for="taxRate">Tax Rate (%):</label>
+            <input type="number" id="taxRate" placeholder="Enter tax rate">
+            <button onclick="calculateTax()">Calculate Tax</button>
+            <p id="taxResult">Total Tax: ₹0</p>
+        </div>
+
+        <!-- GST Calculator -->
+        <div class="calculator">
+            <h2>GST Calculator</h2>
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount" placeholder="Enter amount">
+            <label for="gstRate">GST Rate (%):</label>
+            <input type="number" id="gstRate" placeholder="Enter GST rate">
+            <button onclick="calculateGST()">Calculate GST</button>
+            <p id="gstResult">Total with GST: ₹0</p>
+        </div>
+    </div>
+
+    <script src="scripts.js"></script>
+</body>
+</html>

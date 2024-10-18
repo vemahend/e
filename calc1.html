@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NZ Salary, Tax & GST Calculator</title>
+    <link rel="stylesheet" href="calcStyles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>NZ Salary, Tax & GST Calculator</h1>
+
+        <!-- Salary Calculator -->
+        <div class="calculator">
+            <h2>Salary Calculator</h2>
+            <label for="basicSalary">Gross Salary (Annual):</label>
+            <input type="number" id="basicSalary" placeholder="Enter your salary">
+            <button onclick="calculateSalary()">Calculate Monthly Salary</button>
+            <p id="salaryResult">Monthly Salary: $0</p>
+        </div>
+
+        <!-- Tax Calculator (NZ Tax Rates) -->
+        <div class="calculator">
+            <h2>Tax Calculator (NZ)</h2>
+            <label for="taxIncome">Annual Income:</label>
+            <input type="number" id="taxIncome" placeholder="Enter your income">
+            <button onclick="calculateTax()">Calculate Income Tax</button>
+            <p id="taxResult">Total Income Tax: $0</p>
+        </div>
+
+        <!-- GST Calculator -->
+        <div class="calculator">
+            <h2>GST Calculator (NZ)</h2>
+            <label for="amount">Amount (Excl. GST):</label>
+            <input type="number" id="amount" placeholder="Enter amount">
+            <button onclick="calculateGST()">Calculate Total with GST</button>
+            <p id="gstResult">Total with GST: $0</p>
+        </div>
+    </div>
+
+    <script src="calcScripts.js"></script>
+</body>
+</html>
