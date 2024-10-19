@@ -38,6 +38,29 @@
         #summaryOutput p {
             font-size: 1.2em;
         }
+
+        /* Spinner styles */
+        .spinner {
+            display: none;
+            margin: 20px auto;
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            width: 50px;
+            height: 50px;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+        }
+
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -45,6 +68,9 @@
         <h1>PDF Expense and Income Summarizer</h1>
         <input type="file" id="pdfUpload" accept="application/pdf">
         <button id="processPdf">Process PDF</button>
+
+        <!-- Loading spinner -->
+        <div class="spinner" id="loadingSpinner"></div>
 
         <canvas id="summaryChart"></canvas>
 
@@ -60,11 +86,16 @@
     <script>
         document.getElementById('processPdf').addEventListener('click', () => {
             const file = document.getElementById('pdfUpload').files[0];
+            const spinner = document.getElementById('loadingSpinner');
+
             if (!file) {
                 alert('Please upload a PDF file.');
                 return;
             }
-            
+
+            // Show spinner while processing
+            spinner.style.display = 'block';
+
             const reader = new FileReader();
             reader.onload = function() {
                 const typedArray = new Uint8Array(this.result);
@@ -84,6 +115,8 @@
 
                     Promise.all(promises).then(() => {
                         processTextContent(textContent);
+                        // Hide spinner after processing
+                        spinner.style.display = 'none';
                     });
                 });
             };
