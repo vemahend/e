@@ -61,6 +61,17 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Password prompt */
+        #passwordPrompt {
+            display: none;
+            margin: 20px 0;
+        }
+
+        #passwordPrompt input {
+            padding: 5px;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -68,6 +79,12 @@
         <h1>PDF Expense and Income Summarizer</h1>
         <input type="file" id="pdfUpload" accept="application/pdf">
         <button id="processPdf">Process PDF</button>
+
+        <!-- Password prompt -->
+        <div id="passwordPrompt">
+            <input type="password" id="pdfPassword" placeholder="Enter PDF password">
+            <button id="submitPassword">Submit</button>
+        </div>
 
         <!-- Loading spinner -->
         <div class="spinner" id="loadingSpinner"></div>
@@ -84,6 +101,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        let pdfDoc = null;
+        let passwordProvided = null;
+
         document.getElementById('processPdf').addEventListener('click', () => {
             const file = document.getElementById('pdfUpload').files[0];
             const spinner = document.getElementById('loadingSpinner');
@@ -99,26 +119,60 @@
             const reader = new FileReader();
             reader.onload = function() {
                 const typedArray = new Uint8Array(this.result);
-                pdfjsLib.getDocument(typedArray).promise.then((pdf) => {
-                    let textContent = '';
-                    let promises = [];
+                loadPDF(typedArray);
+            };
+            reader.readAsArrayBuffer(file);
+        });
 
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                        promises.push(pdf.getPage(i).then((page) => {
-                            return page.getTextContent().then((content) => {
-                                content.items.forEach((item) => {
-                                    textContent += item.str + ' ';
-                                });
+        // Load PDF (handling password-protected files)
+        function loadPDF(typedArray) {
+            pdfjsLib.getDocument({
+                data: typedArray,
+                password: passwordProvided
+            }).promise.then((pdf) => {
+                pdfDoc = pdf;
+                let textContent = '';
+                let promises = [];
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    promises.push(pdf.getPage(i).then((page) => {
+                        return page.getTextContent().then((content) => {
+                            content.items.forEach((item) => {
+                                textContent += item.str + ' ';
                             });
-                        }));
-                    }
+                        });
+                    }));
+                }
 
-                    Promise.all(promises).then(() => {
-                        processTextContent(textContent);
-                        // Hide spinner after processing
-                        spinner.style.display = 'none';
-                    });
+                Promise.all(promises).then(() => {
+                    processTextContent(textContent);
+                    document.getElementById('loadingSpinner').style.display = 'none'; // Hide spinner after processing
                 });
+            }).catch((error) => {
+                if (error.name === 'PasswordException') {
+                    showPasswordPrompt(); // Show password prompt
+                } else {
+                    alert('Error processing PDF: ' + error.message);
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                }
+            });
+        }
+
+        // Show password prompt if PDF is password-protected
+        function showPasswordPrompt() {
+            document.getElementById('passwordPrompt').style.display = 'block';
+        }
+
+        // Handle password submission
+        document.getElementById('submitPassword').addEventListener('click', () => {
+            passwordProvided = document.getElementById('pdfPassword').value;
+            document.getElementById('passwordPrompt').style.display = 'none'; // Hide password prompt
+
+            const file = document.getElementById('pdfUpload').files[0];
+            const reader = new FileReader();
+            reader.onload = function() {
+                const typedArray = new Uint8Array(this.result);
+                loadPDF(typedArray); // Try loading the PDF again with the provided password
             };
             reader.readAsArrayBuffer(file);
         });
