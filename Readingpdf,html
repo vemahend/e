@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense & Income PDF Summary</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #pdfUpload {
+            margin: 20px 0;
+        }
+
+        canvas {
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        #summaryOutput {
+            margin-top: 20px;
+        }
+
+        #summaryOutput p {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Expense and Income Summarizer</h1>
+        <input type="file" id="pdfUpload" accept="application/pdf">
+        <button id="processPdf">Process PDF</button>
+
+        <canvas id="summaryChart"></canvas>
+
+        <div id="summaryOutput">
+            <h3>Summary:</h3>
+            <p id="incomeTotal"></p>
+            <p id="expenseTotal"></p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.getElementById('processPdf').addEventListener('click', () => {
+            const file = document.getElementById('pdfUpload').files[0];
+            if (!file) {
+                alert('Please upload a PDF file.');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function() {
+                const typedArray = new Uint8Array(this.result);
+                pdfjsLib.getDocument(typedArray).promise.then((pdf) => {
+                    let textContent = '';
+                    let promises = [];
+
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        promises.push(pdf.getPage(i).then((page) => {
+                            return page.getTextContent().then((content) => {
+                                content.items.forEach((item) => {
+                                    textContent += item.str + ' ';
+                                });
+                            });
+                        }));
+                    }
+
+                    Promise.all(promises).then(() => {
+                        processTextContent(textContent);
+                    });
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function processTextContent(text) {
+            const incomePattern = /Income: (\d+)/gi;
+            const expensePattern = /Expense: (\d+)/gi;
+
+            let totalIncome = 0;
+            let totalExpense = 0;
+
+            let match;
+            while ((match = incomePattern.exec(text)) !== null) {
+                totalIncome += parseInt(match[1]);
+            }
+
+            while ((match = expensePattern.exec(text)) !== null) {
+                totalExpense += parseInt(match[1]);
+            }
+
+            document.getElementById('incomeTotal').textContent = `Total Income: $${totalIncome}`;
+            document.getElementById('expenseTotal').textContent = `Total Expense: $${totalExpense}`;
+
+            createChart(totalIncome, totalExpense);
+        }
+
+        function createChart(income, expense) {
+            const ctx = document.getElementById('summaryChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Income', 'Expenses'],
+                    datasets: [{
+                        label: 'Summary',
+                        data: [income, expense],
+                        backgroundColor: ['#4caf50', '#f44336'],
+                        borderColor: ['#388e3c', '#d32f2f'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
